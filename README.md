@@ -18,14 +18,15 @@ The code is trivia and is written in ATtiny824 bare metal style, it read the tem
 
 The LCD1602.h and I2C.h are driver code that I wrote and can be re-used for other projects. It is in fact took longer to write those drivers than put together the main code.
 
-The complete source is available at https://github.com/e-tinekrs/sht40-temperature-humidity.
+The complete source is available at https://github.com/e-tinkers/sht40-temperature-humidity.
 
 ## Battery Consumption
 The power consumption is around 1.26mA, with a 18650 battery of 2200mAh capacity, it is estimated to last for about 72 days for a single charge. Among the 1.26mA, the LCD1602 consumed about 450uA, the rest is from the ATtiny824 and the SD6201. The MCU is running at 20MHz and consumed about 10mA during wake-up period, and this could be reduced by running at lower clock speed, the SD1601 boost converter can be further improved to reduce it leakage and quiescent current, but I'm happy with the 72 days battery life so I leave every module as is without any modification.
 
 ## Resources
-SHT40 Datasheet - https://sensirion.com/media/documents/33FD6951/6555C40E/Sensirion_Datasheet_SHT4x.pdf
-ATtiny824 Datasheet - https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/ATtiny424-426-427-824-826-827-DataSheet-DS40002311B.pdf
-TP4056 Datasheet (Chinese) - http://www.tp-asic.com/res/tp-asic/pdres/201802/TP4056X.pdf
-SD6201 Datasheet - https://www.lcsc.com/datasheet/lcsc_datasheet_1804250821_SHOUDING-SD6201-AF_C171633.pdf
+- [SHT40 Datasheet](https://sensirion.com/media/documents/33FD6951/6555C40E/Sensirion_Datasheet_SHT4x.pdf)
+- [ATtiny824 Datasheet](https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/ATtiny424-426-427-824-826-827-DataSheet-DS40002311B.pdf)
+- [TP4056 Datasheet (Chinese)](http://www.tp-asic.com/res/tp-asic/pdres/201802/TP4056X.pdf)
+- [SD6201 Datasheet](https://www.lcsc.com/datasheet/lcsc_datasheet_1804250821_SHOUDING-SD6201-AF_C171633.pdf)
+
 
