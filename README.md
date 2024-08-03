@@ -7,7 +7,7 @@ Here is the schematic, but I didn't create it with each of the components and a 
 
 The main PCB consists of the ATtiny824 module and SHT40 breakout module soldered on a prototype board, and then mounted on the back of LCD1602 display module as shown [here](images/main_pcb_mounted_on_back_of_LCD1602.png). 
 
-The Power Supply sub-system consists of a TP4056 Li-Ion charger and 18650 battery protection circuitry, and a SD6201-based boost converter. Both are soldered on a prototype board which is used as the base for a 18650 battery holder as shown [here](images/TP4056_and_SD6201_mounted_on_back_of_16850_battery_holder.png).
+The Power Supply sub-system consists of a TP4056 Li-Ion charger and 18650 battery protection circuitry, and a SD6201-based boost converter. Both are soldered on a prototype board which is used as the base for a 18650 battery holder as shown [here](images/TP4056_and_SD6201_mounted_on_back_of_18650_battery_holder.png).
 
 As I know nothing about 3D printing and mechanical design, and don't have a 3D printer either, so I make wooden box with pine board that I bought from Daiso for 200 yen.
 
