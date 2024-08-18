@@ -20,7 +20,7 @@
 #define SYM_BATTERY     3
 
 // adc parameters
-#define TIMEBASE_VALUE 20     // ceil(F_CPU*0.000001) i.e. number of clock cycles to reach 1uS
+#define TIMEBASE_VALUE 10     // ceil(F_CPU*0.000001) i.e. number of clock cycles to reach 1uS
 #define ADC_MAX_STEP   4095   // In single-ended mode, the max value is 4095
 #define ADC_REF        2.500F
 
@@ -89,9 +89,10 @@ void turnOffUnusedPins() {
 
 int main() {
 
-    _PROTECTED_WRITE(CLKCTRL.MCLKCTRLB, !CLKCTRL_PEN_bm); // disable prescaler to run at 20MHz
+    // _PROTECTED_WRITE(CLKCTRL.MCLKCTRLB, !CLKCTRL_PEN_bm); // disable prescaler to run at 20MHz
+    _PROTECTED_WRITE(CLKCTRL_MCLKCTRLB, (CLKCTRL_PEN_bm | CLKCTRL_PDIV_2X_gc)); // running at 20/2 = 10MHz
     while (!(CLKCTRL.MCLKSTATUS & CLKCTRL_OSC20MS_bm)) {};
-    
+
     turnOffUnusedPins();
 
     configRTC();
@@ -102,8 +103,6 @@ int main() {
     lcd_create_char(SYM_HUMIDITY, humiditySym);
     lcd_create_char(SYM_BATTERY, batterySym);
 
-    i2c_host(&i2c);
-
     SLPCTRL.CTRLA = SLPCTRL_SMODE_PDOWN_gc;  // config sleep controller powerdown mode
     sei();
 
@@ -113,13 +112,12 @@ int main() {
             timeCount = 0;
 
             uint8_t reg_temp_high_precision[] = {SHT40_READ_TEMP};
+            i2c_host(&i2c);
             i2c_start(i2c.client_address);
             i2c_write(reg_temp_high_precision, 1);
             i2c_stop();
 
-            // measurement duration for High Repeatability is 6.9ms typical, 8.3ms maximum
-            // as per SHT40 datasheet
-            _delay_ms(9);
+            _delay_ms(9); // measurement duration for High Repeatability is 6.9-8.3 ms
 
             uint8_t raw[6] = {0};
             i2c_request_from(SHT40_ADDRESS);
@@ -130,15 +128,12 @@ int main() {
             double humidity = -6 + 125.0 * ((uint16_t)raw[3] << 8 | raw[4]) / 65535;
 
             // read battery voltage
-            adc_init();                   // config and adc
+            adc_init();
             ADC0.COMMAND |= ADC_START_IMMEDIATE_gc;
             while(!(ADC0.INTFLAGS & ADC_RESRDY_bm));
             float adc_volt = (float)(ADC0.SAMPLE) / ADC_MAX_STEP * ADC_REF;
             float vBatt = adc_volt * 2;   // reistors of voltage divider has equal value
-            ADC0.CTRLA &= ~ADC_ENABLE_bm; // disable ADC
 
-            BOD.CTRLA = BOD_SLEEP_DIS_gc; // turn off brown out detection during sleep
-            
             // print data to LCD
             char msg[16] = {0};
             sprintf(msg, "%c %.1f %cC", (char) SYM_THERMOMITOR, temperature, (char) 0xdf);
@@ -148,10 +143,15 @@ int main() {
             sprintf(msg, "%c %.1f %%  %c %.1fv", (char) SYM_HUMIDITY, humidity, (char)SYM_BATTERY, vBatt);
             lcd_cursor(2, 1);
             lcd_print_str(msg);
+
+            // disable ADC, I2C and BOD before sleep
+            ADC0.CTRLA &= ~ADC_ENABLE_bm;
+            BOD.CTRLA = BOD_SLEEP_DIS_gc;
+            TWI0.MCTRLA |= TWI_ENABLE_bm;
         }
         SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;  // sleep enable
         __asm("sleep");                   // go to sleep mode
-        SLPCTRL.CTRLA &= ~SLPCTRL_SEN_bm; // sleep disable
+        // SLPCTRL.CTRLA &= ~SLPCTRL_SEN_bm; // sleep disable
     }
 
     return 0;

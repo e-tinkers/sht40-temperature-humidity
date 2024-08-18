@@ -1,5 +1,5 @@
 MCU=attiny824
-F_CPU=20000000UL
+F_CPU=10000000UL
 BUILD_FLAGS=-Wl,-u,vfprintf -lprintf_flt -lm
 
 ifneq (, $(filter $(F_CPU), 20000000UL 10000000UL 5000000UL))
