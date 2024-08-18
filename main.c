@@ -26,7 +26,7 @@
 
 // define the port and pins used by the LCD1602
 LCD_t lcd = {
-	.port = &PORTA,
+    .port = &PORTA,
     .rs = PIN2_bm,
     .en = PIN3_bm,
     .d4 = PIN4_bm,
@@ -68,8 +68,7 @@ void adc_init() {
     ADC0.CTRLC = (TIMEBASE_VALUE << ADC_TIMEBASE_gp) | ADC_REFSEL_2500MV_gc; // timebase value count & ref voltage source
     ADC0.CTRLE = 17;                         // Sample duration=(17 + 0.5) / fCLK_ADC * 1000000=14uS for non-PGA
     ADC0.MUXPOS = ADC_MUXPOS_AIN1_gc;        // AIN1 = PA1
-    ADC0.CTRLF = ADC_SAMPNUM_ACC8_gc;        // 8 sample accumulation
-    ADC0.COMMAND = ADC_MODE_BURST_gc;        // Series Burst Accumulation mode
+    ADC0.COMMAND = ADC_MODE_SINGLE_12BIT_gc; // Single 12-bit mode
     ADC0.CTRLA = ADC_ENABLE_bm;
 }
 
@@ -97,7 +96,7 @@ int main() {
 
     configRTC();
 
-	lcd_config();
+    lcd_config();
     lcd_init(LCD_CURSOR_OFF, LCD_BLINK_OFF);
     lcd_create_char(SYM_THERMOMITOR, thermomitorSym);
     lcd_create_char(SYM_HUMIDITY, humiditySym);
@@ -134,10 +133,12 @@ int main() {
             adc_init();                   // config and adc
             ADC0.COMMAND |= ADC_START_IMMEDIATE_gc;
             while(!(ADC0.INTFLAGS & ADC_RESRDY_bm));
-            float adc_volt = (float)(ADC0.RESULT >> 3) / ADC_MAX_STEP * ADC_REF;
+            float adc_volt = (float)(ADC0.SAMPLE) / ADC_MAX_STEP * ADC_REF;
             float vBatt = adc_volt * 2;   // reistors of voltage divider has equal value
             ADC0.CTRLA &= ~ADC_ENABLE_bm; // disable ADC
 
+            BOD.CTRLA = BOD_SLEEP_DIS_gc; // turn off brown out detection during sleep
+            
             // print data to LCD
             char msg[16] = {0};
             sprintf(msg, "%c %.1f %cC", (char) SYM_THERMOMITOR, temperature, (char) 0xdf);
