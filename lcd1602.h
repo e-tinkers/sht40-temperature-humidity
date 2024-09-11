@@ -143,4 +143,8 @@ void lcd_create_char(uint8_t addr, const char* font) {
 	}
 }
 
+void lcd_off() {
+	lcd_write(LCD_DISPLAY_OFF, CMD);
+}
+
 #endif

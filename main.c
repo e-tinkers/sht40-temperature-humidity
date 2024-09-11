@@ -73,17 +73,17 @@ void adc_init() {
 }
 
 void turnOffUnusedPins() {
-  // set all pin to input
-  PORTA.DIRCLR = PIN0_bm | PIN1_bm;
-  PORTB.DIRCLR = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
+    // set all pin to input
+    PORTA.DIRCLR = PIN0_bm | PIN1_bm;
+    PORTB.DIRCLR = PIN0_bm | PIN1_bm | PIN2_bm | PIN3_bm;
 
-  PORTA.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
-  PORTA.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTA.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTA.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
 
-  PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
-  PORTB.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
-  PORTB.PIN2CTRL = PORT_ISC_INPUT_DISABLE_gc;
-  PORTB.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTB.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTB.PIN2CTRL = PORT_ISC_INPUT_DISABLE_gc;
+    PORTB.PIN3CTRL = PORT_ISC_INPUT_DISABLE_gc;
 
 }
 
@@ -92,8 +92,6 @@ int main() {
     // _PROTECTED_WRITE(CLKCTRL.MCLKCTRLB, !CLKCTRL_PEN_bm); // disable prescaler to run at 20MHz
     _PROTECTED_WRITE(CLKCTRL_MCLKCTRLB, (CLKCTRL_PEN_bm | CLKCTRL_PDIV_2X_gc)); // running at 20/2 = 10MHz
     while (!(CLKCTRL.MCLKSTATUS & CLKCTRL_OSC20MS_bm)) {};
-
-    turnOffUnusedPins();
 
     configRTC();
 
@@ -107,6 +105,7 @@ int main() {
     sei();
 
     while(1) {
+
         if (timeCount == 0 || timeCount > WAKEUP_INTERVAL) {
 
             timeCount = 0;
@@ -117,22 +116,24 @@ int main() {
             i2c_write(reg_temp_high_precision, 1);
             i2c_stop();
 
-            _delay_ms(9); // measurement duration for High Repeatability is 6.9-8.3 ms
+            // Measurement duration for High Repeatability is 6.9-8.3 ms, so must well use the time
+            // to read the ADC for batt voltage first
 
-            uint8_t raw[6] = {0};
-            i2c_request_from(SHT40_ADDRESS);
-            i2c_read(raw, sizeof(raw));
-
-            // convert to Temperature/Humidity
-            double temperature = -45 + 175.0 * ((uint16_t)raw[0] << 8 | raw[1]) / 65535;
-            double humidity = -6 + 125.0 * ((uint16_t)raw[3] << 8 | raw[4]) / 65535;
-
-            // read battery voltage
+            // Read ADC value
             adc_init();
             ADC0.COMMAND |= ADC_START_IMMEDIATE_gc;
             while(!(ADC0.INTFLAGS & ADC_RESRDY_bm));
             float adc_volt = (float)(ADC0.SAMPLE) / ADC_MAX_STEP * ADC_REF;
             float vBatt = adc_volt * 2;   // reistors of voltage divider has equal value
+
+            _delay_ms(7);
+
+            // convert to Temperature/Humidity
+            uint8_t raw[6] = {0};
+            i2c_request_from(SHT40_ADDRESS);
+            i2c_read(raw, sizeof(raw));
+            double temperature = -45 + 175.0 * ((uint16_t)raw[0] << 8 | raw[1]) / 65535;
+            double humidity = -6 + 125.0 * ((uint16_t)raw[3] << 8 | raw[4]) / 65535;
 
             // print data to LCD
             char msg[16] = {0};
@@ -144,14 +145,17 @@ int main() {
             lcd_cursor(2, 1);
             lcd_print_str(msg);
 
-            // disable ADC, I2C and BOD before sleep
-            ADC0.CTRLA &= ~ADC_ENABLE_bm;
-            BOD.CTRLA = BOD_SLEEP_DIS_gc;
-            TWI0.MCTRLA |= TWI_ENABLE_bm;
         }
+
+        // disable ADC, I2C, BOD and all GPIO pins before sleep
+        ADC0.CTRLA &= ~ADC_ENABLE_bm;
+        BOD.CTRLA = BOD_SLEEP_DIS_gc;
+        TWI0.MCTRLA |= TWI_ENABLE_bm;
+        turnOffUnusedPins();
+
         SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;  // sleep enable
         __asm("sleep");                   // go to sleep mode
-        // SLPCTRL.CTRLA &= ~SLPCTRL_SEN_bm; // sleep disable
+
     }
 
     return 0;
