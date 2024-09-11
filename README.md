@@ -14,9 +14,9 @@ As I know nothing about 3D printing and mechanical design, and don't have a 3D p
 !["final assembly in a pine wooden box"](images/temperature_humidity_monitor_in_finishing_wood_box.png)
 
 ## Software
-The code is trivia and is written in ATtiny824 bare metal style, it read the temperature and humidity once every 1 minute and go back to Power Down sleep mode. In addition to read the temperature and humidity data from the SHT40, the battery voltage is read via a voltage divider for monitoring when the battery would need to be charged.
+The code is trivia and is written in ATtiny824 bare metal style. The PIT is setup to wake up every 1 second to update a `timeCount`, if the `timeCount` hasn't reach to 60 seconds, it go back to power down sleep immediately. When the `timeCount` reached to 60 seconds (1 minute), it read the temperature and humidity go back to Power Down sleep mode. In addition to read the temperature and humidity data from the SHT40, the battery voltage is read via a voltage divider for monitoring when the battery would need to be charged.
 
-The LCD1602.h and I2C.h are driver code that I wrote and can be re-used for other projects. It is in fact took longer to write those drivers than put together the main code.
+The LCD1602.h and I2C.h are driver code that I wrote and can be re-used for other projects. It is in fact took longer to write those drivers than put together the main code. The I2C driver works from 10MHz clock speed onward, anything below 10MHz does not work with this driver.
 
 The complete source is available at https://github.com/e-tinkers/sht40-temperature-humidity.
 
