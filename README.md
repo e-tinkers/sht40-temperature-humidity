@@ -21,7 +21,7 @@ The LCD1602.h and I2C.h are driver code that I wrote and can be re-used for othe
 The complete source is available at https://github.com/e-tinkers/sht40-temperature-humidity.
 
 ## Battery Consumption
-The power consumption is around 1.26mA, with a 18650 battery of 2200mAh capacity, it is estimated to last for about 72 days for a single charge. Among the 1.26mA, the LCD1602 consumed about 450uA, the rest is from the ATtiny824 and the SD6201. The MCU is running at 20MHz and consumed about 10mA during wake-up period, and this could be reduced by running at lower clock speed, the SD6201 boost converter design can be further improved to reduce it leakage and quiescent current, but I'm happy with the 72 days battery life so I leave every module as is without any modification.
+The power consumption is around 1.26mA, with a 18650 battery of 2200mAh capacity, it is estimated to last for about 57 days for a single charge. Among the 1.26mA, the LCD1602 consumed about 450uA, the rest is from the ATtiny824 and the SD6201. The MCU is running at 10MHz and consumed about 6mA during wake-up period, the SD6201 boost converter design can be further improved to reduce it leakage and quiescent current, but I'm happy with the 57 days battery life so I leave every module as is without any modification.
 
 ## Resources
 - [SHT40 Datasheet](https://sensirion.com/media/documents/33FD6951/6555C40E/Sensirion_Datasheet_SHT4x.pdf)
